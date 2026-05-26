@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { SYSTEM_PROMPT, genAI as defaultGenAI } from '@/lib/gemini';
+import { SYSTEM_PROMPT } from '@/lib/gemini';
 import { runAkinatorEngine } from '@/lib/ipl-entities';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
       if (history?.length > 0) {
         ctx += 'History of questions and answers:\n';
-        history.forEach((h: any, i: number) => {
+        history.forEach((h: { question: string; answer: string }, i: number) => {
           ctx += `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}\n\n`;
         });
       }
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       const parsed = JSON.parse(cleaned);
 
       // Sanity-check the Gemini response — never let it repeat a question
-      const askedQuestions = (history || []).map((h: any) => h.question);
+      const askedQuestions = (history || []).map((h: { question: string }) => h.question);
       if (parsed.question && askedQuestions.includes(parsed.question)) {
         parsed.question = engineResult.question;
       }
@@ -86,8 +86,8 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.json(parsed);
-    } catch (apiError: any) {
-      const msg = apiError?.message || '';
+    } catch (apiError) {
+      const msg = (apiError as Error)?.message || '';
       if (msg.includes('429') || msg.includes('quota') || msg.includes('Quota')) {
         // Quota hit — silently serve local result with a soft warning
         return NextResponse.json({
