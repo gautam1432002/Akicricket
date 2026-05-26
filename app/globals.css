@@ -1,0 +1,212 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+}
+
+/* ── Performance base: GPU-composited layers ──────────────────────────────── */
+body {
+  color: var(--foreground);
+  background: 
+    radial-gradient(circle at 12% 18%, rgba(99, 102, 241, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 88% 82%, rgba(236, 72, 153, 0.15) 0%, transparent 45%),
+    radial-gradient(circle at 82% 32%, rgba(245, 158, 11, 0.08) 0%, transparent 35%),
+    #f8fafc;
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeSpeed;
+}
+
+/* ── Glassmorphism ────────────────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 8px 32px 0 rgba(15, 23, 42, 0.02),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Only transition transform + shadow — avoids full composite on every frame */
+.glass-panel-hover {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease;
+}
+.glass-panel-hover:hover {
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-3px) translateZ(0);
+  box-shadow:
+    0 18px 36px -12px rgba(15, 23, 42, 0.08),
+    0 1px 3px rgba(15, 23, 42, 0.03);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+/* ── Siri Gradient Blob ────────────────────────────────────────────────────
+   Pure CSS — no JS timers, GPU-composited via will-change + translateZ.
+   Uses separate animations for shape, color and scale so the browser
+   can optimise each independently on the compositor thread.           ── */
+.siri-blob {
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 35%, #ec4899 70%, #f59e0b 100%);
+  background-size: 250% 250%;
+  filter: blur(14px);
+  will-change: transform, border-radius, opacity;
+  transform: translateZ(0);
+  animation:
+    siri-morph   9s  ease-in-out  infinite,
+    siri-scale   4s  ease-in-out  infinite alternate,
+    siri-colors  14s linear       infinite;
+  box-shadow: 0 0 50px 12px rgba(168, 85, 247, 0.22);
+}
+
+/* Active state — faster, brighter */
+.siri-blob.active {
+  animation-duration: 5s, 2s, 9s;
+  filter: blur(18px);
+  box-shadow: 0 0 70px 20px rgba(168, 85, 247, 0.4);
+}
+
+@keyframes siri-morph {
+  0%   { border-radius: 44% 56% 68% 32% / 46% 44% 56% 54%; }
+  25%  { border-radius: 68% 32% 50% 50% / 58% 42% 58% 42%; }
+  50%  { border-radius: 50% 50% 32% 68% / 40% 62% 38% 60%; }
+  75%  { border-radius: 32% 68% 68% 32% / 54% 36% 64% 46%; }
+  100% { border-radius: 44% 56% 68% 32% / 46% 44% 56% 54%; }
+}
+
+@keyframes siri-scale {
+  from { transform: translateZ(0) scale(0.92); opacity: 0.75; }
+  to   { transform: translateZ(0) scale(1.08); opacity: 1; }
+}
+
+@keyframes siri-colors {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* ── Logo spin — pure CSS, smooth 60fps ────────────────────────────────── */
+.aki-logo-idle {
+  animation: logo-breathe 4s ease-in-out infinite;
+  will-change: transform;
+}
+.aki-logo-thinking {
+  animation: logo-spin 1.6s linear infinite;
+  will-change: transform;
+}
+@keyframes logo-breathe {
+  0%, 100% { transform: scale(1)   translateZ(0); }
+  50%       { transform: scale(1.06) translateZ(0); }
+}
+@keyframes logo-spin {
+  from { transform: rotate(0deg)   translateZ(0); }
+  to   { transform: rotate(360deg) translateZ(0); }
+}
+
+/* ── White disk pulse when thinking ────────────────────────────────────── */
+.siri-disk {
+  will-change: transform;
+  transition: transform 0.4s ease;
+}
+.siri-disk.thinking {
+  animation: disk-pulse 1.6s ease-in-out infinite;
+}
+@keyframes disk-pulse {
+  0%, 100% { transform: scale(1)    translateZ(0); }
+  50%       { transform: scale(0.94) translateZ(0); }
+}
+
+/* ── Conic glow ring ─────────────────────────────────────────────────────── */
+.siri-glow-ring {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #6366f1, #a855f7, #ec4899, #f59e0b, #6366f1);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  padding: 3px;
+  animation: ring-spin 6s linear infinite;
+  opacity: 0.55;
+  will-change: transform;
+  transform: translateZ(0);
+}
+@keyframes ring-spin {
+  from { transform: rotate(0deg)   translateZ(0); }
+  to   { transform: rotate(360deg) translateZ(0); }
+}
+
+/* ── Background morphing bubbles — very slow, GPU-only ─────────────────── */
+.bg-bubble-1 {
+  background: rgba(99, 102, 241, 0.28);
+  will-change: transform;
+  transform: translateZ(0);
+  animation: bubble-1 30s ease-in-out infinite alternate;
+}
+.bg-bubble-2 {
+  background: rgba(236, 72, 153, 0.28);
+  will-change: transform;
+  transform: translateZ(0);
+  animation: bubble-2 24s ease-in-out infinite alternate;
+}
+.bg-bubble-3 {
+  background: rgba(245, 158, 11, 0.18);
+  will-change: transform;
+  transform: translateZ(0);
+  animation: bubble-3 36s ease-in-out infinite alternate;
+}
+
+/* Only animate transform — cheapest possible repaint */
+@keyframes bubble-1 {
+  from { transform: translate(0, 0)       scale(1)    translateZ(0); }
+  to   { transform: translate(70px, -55px) scale(1.12) translateZ(0); }
+}
+@keyframes bubble-2 {
+  from { transform: translate(0, 0)       scale(1)    translateZ(0); }
+  to   { transform: translate(-60px, 70px) scale(1.18) translateZ(0); }
+}
+@keyframes bubble-3 {
+  from { transform: translate(0, 0)       scale(1)    translateZ(0); }
+  to   { transform: translate(45px, 45px)  scale(0.85) translateZ(0); }
+}
+
+/* ── Orbit dashed ring ───────────────────────────────────────────────────── */
+.orbit-ring-spin {
+  transform-origin: 96px 96px; /* matches SVG cx/cy */
+  animation: orbit-spin 9s linear infinite;
+  will-change: transform;
+}
+@keyframes orbit-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.09);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(15, 23, 42, 0.18); }
+
+/* ── Typewriter cursor ───────────────────────────────────────────────────── */
+.typewriter-cursor::after {
+  content: '|';
+  animation: cursor-blink 0.8s step-end infinite;
+  color: #6366f1;
+  font-weight: bold;
+}
+@keyframes cursor-blink {
+  from, to { opacity: 0 }
+  50%       { opacity: 1 }
+}
